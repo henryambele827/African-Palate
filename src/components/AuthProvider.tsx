@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import {
   onAuthStateChanged,
   signInWithRedirect,
+  getRedirectResult,
   GoogleAuthProvider,
   signOut as firebaseSignOut,
   User
@@ -68,6 +69,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [authError, setAuthError] = useState<string | null>(null);
 
   useEffect(() => {
+    // Handle redirect result on page load
+    getRedirectResult(auth)
+      .catch((error: any) => {
+        console.error('Redirect result error:', error);
+        if (error.code === 'auth/network-request-failed' || error.code === 'auth/internal-error') {
+          setAuthError('NETWORK_ERROR');
+        } else if (error.code === 'auth/no-auth-event') {
+          // Ignore - not a redirect result
+        } else {
+          setAuthError('SIGN_IN_FAILED');
+        }
+      });
+
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setUser(user);
       if (user) {
