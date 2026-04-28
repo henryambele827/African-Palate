@@ -41,7 +41,7 @@ export default function Home() {
             >
               <div className="w-16 h-16 rounded-2xl overflow-hidden shadow-2xl shadow-brand-orange/20">
                 <img 
-                  src="/logo.png" 
+                  src="https://i.imgur.com/ShQ3EEN.jpeg" 
                   alt="Logo" 
                   className="w-full h-full object-cover"
                   referrerPolicy="no-referrer"
