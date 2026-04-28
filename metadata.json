@@ -1,0 +1,6 @@
+{
+  "name": "AfroBite: The African Palate",
+  "description": "Premium African cuisine delivery for Cavendish University. Explore 36+ authentic dishes from Uganda, Somalia, Nigeria, Congo, Eritrea, and Sudan.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["Food Delivery", "Pre-order System", "Mobile Payments"]
+}

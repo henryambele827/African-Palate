@@ -1,0 +1,97 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;900&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Outfit", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Playfair Display", ui-serif, Georgia, serif;
+
+  --color-brand-orange: #E65100;
+  --color-brand-green: #2E7D32;
+  --color-brand-purple: #7B1FA2;
+  --color-brand-yellow: #FBC02D;
+  --color-app-bg: #FAF9F6;
+  --color-app-card: #FFFFFF;
+  --color-app-black: #1A1A1A;
+  
+  --shadow-bento: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+}
+
+@layer base {
+  body {
+    @apply bg-app-bg text-app-black font-sans antialiased;
+  }
+}
+
+@utility bento-card {
+  background-color: var(--color-app-card);
+  border-radius: 2rem;
+  padding: 1.5rem;
+  box-shadow: var(--shadow-bento);
+  border: 1px solid #F3F4F6;
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 300ms;
+}
+
+@utility bento-card-interactive {
+  @apply bento-card hover:shadow-lg hover:scale-[1.01];
+}
+
+@utility status-pill {
+  padding-left: 0.75rem;
+  padding-right: 0.75rem;
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
+  border-radius: 9999px;
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  border-width: 1px;
+}
+
+@utility orange-grid {
+  background-color: #FFE0B2;
+  border: 1px solid #FFB74D;
+  color: #E65100;
+}
+
+@utility green-grid {
+  background-color: #E8F5E9;
+  border: 1px solid #A5D6A7;
+  color: #2E7D32;
+}
+
+@utility custom-scrollbar {
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: #E5E7EB;
+    border-radius: 10px;
+  }
+  &::-webkit-scrollbar-thumb:hover {
+    background: #D1D5DB;
+  }
+}
+
+@utility no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 20s linear infinite;
+}
+

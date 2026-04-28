@@ -1,0 +1,120 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 0. Default Deny Everything
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- Global Helpers ---
+    function isSignedIn() {
+      return request.auth != null && request.auth.token.email_verified == true;
+    }
+    
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+    
+    function incoming() {
+      return request.resource.data;
+    }
+    
+    function existing() {
+      return resource.data;
+    }
+    
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // Auth tokens do not contain custom claims, so we look up roles in the USERS collection
+    function isAdmin() {
+      return isSignedIn() && (
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin') ||
+        request.auth.token.email == 'henryambele827@gmail.com'
+      );
+    }
+
+    // --- Collections ---
+
+    // Users
+    match /users/{userId} {
+      function isValidUser(data) {
+        return data.uid == userId 
+               && data.email is string && data.email.size() > 0
+               && (request.auth.token.email == data.email)
+               && data.role in ['student', 'admin']
+               && data.createdAt is string;
+      }
+
+      // Users can always read their own profile. Admins can read any profile.
+      allow get: if isOwner(userId) || isAdmin();
+      
+      // Allow profile creation if it's the user's own ID and matches schema.
+      allow create: if isOwner(userId) && isValidUser(incoming()) && (
+        incoming().role == 'student' || 
+        (incoming().role == 'admin' && incoming().email == 'henryambele827@gmail.com')
+      );
+      
+      // Users can update their own profile. Only the bootstrap admin can change their role to admin.
+      allow update: if isOwner(userId) && isValidUser(incoming()) && (
+        incoming().role == existing().role || 
+        (incoming().role == 'admin' && incoming().email == 'henryambele827@gmail.com')
+      );
+    }
+
+    // Meals
+    match /meals/{mealId} {
+      function isValidMeal(data) {
+        return data.name is string && data.name.size() > 0 && data.name.size() <= 100
+               && data.get('description', '') is string && data.get('description', '').size() <= 2000
+               && data.price is number && data.price > 0
+               && data.category in ['Main Dish', 'Quick Bite', 'Daily Special', 'Traditional']
+               && data.country in ['Uganda', 'Somalia', 'Eritrea', 'DR Congo', 'Nigeria', 'Sudan']
+               && (data.imageUrl is string || !('imageUrl' in data))
+               && (data.isAvailable is bool || !('isAvailable' in data))
+               && (data.get('options', []) is list)
+               && (data.createdAt is string || !('createdAt' in data) || data.createdAt == null)
+               && (data.updatedAt is string || !('updatedAt' in data) || data.updatedAt == null);
+      }
+
+      allow list, get: if true;
+      allow create: if isAdmin() && isValidMeal(incoming());
+      allow update: if isAdmin() && isValidMeal(incoming());
+      allow delete: if isAdmin();
+    }
+
+    // Orders
+    match /orders/{orderId} {
+      function isValidOrder(data) {
+        return data.userId == request.auth.uid
+               && data.mealId is string
+               && (data.get('selectedOption', '') is string)
+               && data.quantity is number && data.quantity > 0 && data.quantity <= 20
+               && data.totalPrice is number && data.totalPrice > 0
+               && data.status in ['pending', 'confirmed', 'delivered', 'cancelled']
+               && data.deliveryDate is string
+               && data.deliveryLocation is string && data.deliveryLocation.size() <= 1000
+               && data.createdAt is string;
+      }
+
+      allow get: if isSignedIn() && (existing().userId == request.auth.uid || isAdmin());
+      allow list: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+      
+      allow create: if isSignedIn() && isValidOrder(incoming());
+      
+      allow update: if (
+        isSignedIn() && (
+          // Admin can update status and paidAmount
+          (isAdmin() && (
+             incoming().diff(existing()).affectedKeys().hasAny(['status', 'paidAmount']) ||
+             incoming().diff(existing()).affectedKeys().hasOnly(['status'])
+          )) ||
+          // User can cancel their own pending order
+          (isOwner(existing().userId) && existing().status == 'pending' && incoming().status == 'cancelled' && incoming().diff(existing()).affectedKeys().hasOnly(['status']))
+        )
+      );
+    }
+  }
+}

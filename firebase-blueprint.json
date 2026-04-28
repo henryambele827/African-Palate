@@ -1,0 +1,76 @@
+{
+  "entities": {
+    "User": {
+      "title": "User Profile",
+      "description": "Stores user account information and roles.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "displayName": { "type": "string" },
+        "phoneNumber": { "type": "string" },
+        "role": { "type": "string", "enum": ["student", "admin"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email", "role"]
+    },
+    "Meal": {
+      "title": "Meal",
+      "description": "Represents a food item available for order.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "price": { "type": "number" },
+        "category": { "type": "string", "enum": ["Main Dish", "Quick Bite", "Daily Special", "Traditional"] },
+        "country": { "type": "string", "enum": ["Uganda", "Somalia", "Eritrea", "DR Congo", "Nigeria", "Sudan"] },
+        "imageUrl": { "type": "string" },
+        "isAvailable": { "type": "boolean" },
+        "meatOptions": { "type": "array", "items": { "type": "string" } },
+        "accompanimentOptions": { "type": "array", "items": { "type": "string" } },
+        "options": { "type": "array", "items": { "type": "string" } },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "price", "category", "isAvailable"]
+    },
+    "Order": {
+      "title": "Order",
+      "description": "Stores customer pre-orders.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "userPhone": { "type": "string" },
+        "mealId": { "type": "string" },
+        "mealName": { "type": "string" },
+        "selectedMeat": { "type": "string" },
+        "selectedAccompaniment": { "type": "string" },
+        "selectedOption": { "type": "string" },
+        "quantity": { "type": "number" },
+        "totalPrice": { "type": "number" },
+        "paidAmount": { "type": "number" },
+        "status": { "type": "string", "enum": ["pending", "confirmed", "delivered", "cancelled"] },
+        "deliveryDate": { "type": "string", "format": "date" },
+        "deliveryLocation": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "mealId", "quantity", "totalPrice", "status", "deliveryDate", "deliveryLocation"]
+    }
+  },
+  "firestore": {
+    "users/{userId}": {
+      "schema": "User",
+      "description": "User profiles and settings."
+    },
+    "meals/{mealId}": {
+      "schema": "Meal",
+      "description": "Catalog of meals available for pre-order."
+    },
+    "orders/{orderId}": {
+      "schema": "Order",
+      "description": "Customer orders history and current status."
+    }
+  }
+}
