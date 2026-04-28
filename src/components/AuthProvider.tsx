@@ -1,10 +1,10 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { 
-  onAuthStateChanged, 
-  signInWithPopup, 
-  GoogleAuthProvider, 
+import {
+  onAuthStateChanged,
+  signInWithRedirect,
+  GoogleAuthProvider,
   signOut as firebaseSignOut,
-  User 
+  User
 } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { auth, db } from '../lib/firebase';
@@ -126,32 +126,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const clearAuthError = () => setAuthError(null);
 
-  const signIn = () => {
+  const signIn = async () => {
     if (isSigningIn.current) return;
     isSigningIn.current = true;
     setAuthError(null);
-    
+
     const provider = new GoogleAuthProvider();
-    // Using then/catch instead of await to stay closer to the user interaction stack if possible
-    signInWithPopup(auth, provider)
-      .then(() => {
-        isSigningIn.current = false;
-      })
-      .catch((error: any) => {
-        isSigningIn.current = false;
-        console.error('Sign in error', error);
-        if (error.code === 'auth/popup-blocked') {
-          setAuthError('POPUP_BLOCKED');
-        } else if (error.code === 'auth/cancelled-popup-request') {
-          console.warn('Sign-in cancelled or concurrent request detected.');
-        } else if (error.code === 'auth/popup-closed-by-user') {
-          // User closed it
-        } else if (error.code === 'auth/network-request-failed' || error.code === 'auth/internal-error') {
-          setAuthError('NETWORK_ERROR');
-        } else {
-          setAuthError('SIGN_IN_FAILED');
-        }
-      });
+    try {
+      await signInWithRedirect(auth, provider);
+    } catch (error: any) {
+      isSigningIn.current = false;
+      console.error('Sign in error', error);
+      if (error.code === 'auth/network-request-failed' || error.code === 'auth/internal-error') {
+        setAuthError('NETWORK_ERROR');
+      } else {
+        setAuthError('SIGN_IN_FAILED');
+      }
+    }
   };
 
   const signOut = async () => {
