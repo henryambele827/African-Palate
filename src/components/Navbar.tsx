@@ -15,7 +15,7 @@ export default function Navbar() {
         <Link to="/" className="flex items-center gap-3 group">
           <div className="relative w-12 h-12 rounded-2xl overflow-hidden shadow-lg shadow-black/10 group-hover:scale-105 transition-transform">
             <img 
-              src="/logo.png" 
+              src="https://i.imgur.com/ShQ3EEN.jpeg" 
               alt="Logo" 
               className="w-full h-full object-cover"
               referrerPolicy="no-referrer"
