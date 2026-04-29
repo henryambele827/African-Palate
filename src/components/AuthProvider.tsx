@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import {
   onAuthStateChanged,
+  signInWithPopup,
   signInWithRedirect,
   getRedirectResult,
   GoogleAuthProvider,
@@ -146,14 +147,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setAuthError(null);
 
     const provider = new GoogleAuthProvider();
+
+    // Try popup first
     try {
-      await signInWithRedirect(auth, provider);
+      await signInWithPopup(auth, provider);
     } catch (error: any) {
-      isSigningIn.current = false;
-      console.error('Sign in error', error);
-      if (error.code === 'auth/network-request-failed' || error.code === 'auth/internal-error') {
+      console.log('Popup failed, trying redirect:', error.code);
+      // Fall back to redirect if popup is blocked or fails
+      if (error.code === 'auth/popup-blocked' ||
+          error.code === 'auth/popup-closed-by-user' ||
+          error.code === 'auth/cancelled-popup-request' ||
+          error.code.includes('storage') ||
+          error.code.includes('state')) {
+        try {
+          await signInWithRedirect(auth, provider);
+        } catch (redirectError: any) {
+          isSigningIn.current = false;
+          console.error('Redirect error:', redirectError);
+          if (redirectError.code === 'auth/network-request-failed') {
+            setAuthError('NETWORK_ERROR');
+          } else {
+            setAuthError('SIGN_IN_FAILED');
+          }
+        }
+      } else if (error.code === 'auth/network-request-failed' || error.code === 'auth/internal-error') {
+        isSigningIn.current = false;
         setAuthError('NETWORK_ERROR');
       } else {
+        isSigningIn.current = false;
         setAuthError('SIGN_IN_FAILED');
       }
     }
