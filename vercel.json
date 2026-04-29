@@ -1,17 +1,8 @@
 {
-  "headers": [
+  "rewrites": [
     {
-      "source": "/(.*)",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "no-store, no-cache, must-revalidate, proxy-revalidate"
-        },
-        {
-          "key": "Access-Control-Allow-Origin",
-          "value": "*"
-        }
-      ]
+      "source": "/__/auth/:path*",
+      "destination": "https://gen-lang-client-0012716113.firebaseapp.com/__/auth/:path*"
     }
   ]
 }
